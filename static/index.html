@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CF Problem Recommender</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #00e5ff;
+    --accent2: #ff3cac;
+    --accent3: #7b5ea7;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --tag-bg: #1e1e2e;
+    --font-mono: 'Space Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 3rem 0 2.5rem;
+  }
+
+  .logo-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.75rem;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Search bar */
+  .search-wrap {
+    max-width: 600px;
+    margin: 2.5rem auto;
+    position: relative;
+  }
+
+  .search-bar {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-bar:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.12);
+  }
+
+  .handle-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0.9rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--text);
+    caret-color: var(--accent);
+  }
+
+  .handle-input::placeholder { color: var(--muted); }
+
+  .search-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 0 1.5rem;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .search-btn:hover { background: #33eeff; }
+  .search-btn:active { transform: scale(0.97); }
+  .search-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+
+  .stat-item span { color: var(--accent); font-weight: 700; }
+
+  /* Error / info */
+  .message {
+    text-align: center;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .message.error { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Loading */
+  .loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.4s infinite ease-in-out both;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; background: #fff; }
+  .dot:nth-child(3) { animation-delay: 0.4s; background: var(--accent2); }
+
+  @keyframes pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Topic grid */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .topic-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .topic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .topic-name {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .topic-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    background: var(--tag-bg);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .problem-list { padding: 0.5rem 0; }
+
+  .problem-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    gap: 0.75rem;
+    transition: background 0.15s;
+  }
+
+  .problem-item:last-child { border-bottom: none; }
+  .problem-item:hover { background: rgba(0, 229, 255, 0.04); }
+
+  .problem-info { flex: 1; min-width: 0; }
+
+  .problem-link {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s;
+  }
+
+  .problem-link:hover { color: var(--accent); }
+
+  .problem-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge-rating { background: rgba(123,94,167,0.25); color: #a78bfa; }
+  .badge-score { background: rgba(0,229,255,0.1); color: var(--accent); }
+
+  .no-probs {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* Refresh button */
+  .refresh-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Handle display */
+  .handle-display {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .handle-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .handle-pill .at { color: var(--accent2); }
+  .handle-pill .name { color: var(--text); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="logo-tag">// Codeforces Problem Recommender</span>
+    <h1>Growth In O(1)</h1>
+    <p class="subtitle">Personalized problems ranked by your skill profile</p>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search-bar">
+      <input
+        class="handle-input"
+        id="handleInput"
+        type="text"
+        placeholder="Enter CF handle (e.g. tourist)"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="search-btn" id="searchBtn" onclick="fetchRecs()">ANALYZE</button>
+    </div>
+  </div>
+
+  <div id="output"></div>
+</div>
+
+<script>
+  const API = '';  // Same origin; Flask serves both
+
+  document.getElementById('handleInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') fetchRecs();
+  });
+
+  async function fetchRecs(refresh = false) {
+    const handle = document.getElementById('handleInput').value.trim();
+    if (!handle) return;
+
+    const btn = document.getElementById('searchBtn');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    showLoader(handle);
+
+    try {
+      const url = `${API}/api/recommend?handle=${encodeURIComponent(handle)}${refresh ? '&refresh=true' : ''}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        showError(data.error || 'Something went wrong.');
+        return;
+      }
+
+      renderResults(data, handle);
+    } catch (err) {
+      showError('Network error. Is the server running?');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'ANALYZE';
+    }
+  }
+
+  function showLoader(handle) {
+    document.getElementById('output').innerHTML = `
+      <div class="loader">
+        <div class="dots">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+        <span>FETCHING DATA FOR <strong style="color:var(--accent)">${handle}</strong></span>
+      </div>`;
+  }
+
+  function showError(msg) {
+    document.getElementById('output').innerHTML =
+      `<div class="message error">${msg}</div>`;
+  }
+
+  function renderResults(data, handle) {
+    const { recommendations, tags, solved_count } = data;
+
+    const totalRecs = tags.reduce((sum, t) => sum + (recommendations[t]?.length || 0), 0);
+
+    let html = `
+      <div class="handle-display">
+        <div class="handle-pill">
+          <span class="at">@</span><span class="name">${handle}</span>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item">Problems Solved: <span>${solved_count}</span></div>
+        <div class="stat-item">Recommendations: <span>${totalRecs}</span></div>
+        <div class="stat-item">Topics: <span>${tags.length}</span></div>
+      </div>
+      <div class="refresh-row">
+        <button class="refresh-btn" onclick="fetchRecs(true)">↻ Refresh problem cache</button>
+      </div>
+      <div class="topics-grid">`;
+
+    tags.forEach((tag, i) => {
+      const probs = recommendations[tag] || [];
+      html += `
+        <div class="topic-card" style="animation-delay:${i * 0.05}s">
+          <div class="topic-header">
+            <span class="topic-name">${tag}</span>
+            <span class="topic-count">${probs.length} recs</span>
+          </div>
+          <div class="problem-list">`;
+
+      if (probs.length === 0) {
+        html += `<div class="no-probs">No unsolved problems found</div>`;
+      } else {
+        probs.forEach(p => {
+          const ratingBadge = p.rating
+            ? `<span class="badge badge-rating">⭑ ${p.rating}</span>` : '';
+          const scoreBadge = `<span class="badge badge-score">score ${p.score}</span>`;
+          html += `
+            <div class="problem-item">
+              <div class="problem-info">
+                <a class="problem-link" href="${p.url}" target="_blank" title="${p.name}">${p.name}</a>
+                <div class="problem-meta">${ratingBadge}${scoreBadge}</div>
+              </div>
+            </div>`;
+        });
+      }
+
+      html += `</div></div>`;
+    });
+
+    html += `</div>`;
+    document.getElementById('output').innerHTML = html;
+  }
+</script>
+</body>
+</html>
