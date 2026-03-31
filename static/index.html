@@ -1,479 +1,777 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CF Problem Recommender</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<title>CF Dashboard — The Neon Architect</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --card: #16161f;
-    --border: #2a2a3a;
-    --accent: #00e5ff;
-    --accent2: #ff3cac;
-    --accent3: #7b5ea7;
-    --text: #e8e8f0;
-    --muted: #6b6b80;
-    --tag-bg: #1e1e2e;
-    --font-mono: 'Space Mono', monospace;
-    --font-display: 'Syne', sans-serif;
-  }
+:root{
+  --bg:#080c14;--sidebar:#070b12;--panel:#0d1220;--card:#111827;--card2:#0f1929;
+  --border:rgba(255,255,255,0.06);--border-c:rgba(0,245,255,0.18);
+  --cyan:#00f5ff;--pink:#ff2d9b;--purple:#9b59f5;--green:#00ff88;--gold:#ffc107;--red:#ff4757;
+  --text:#cce0f5;--muted:#3a4a5e;--dim:#1a2535;
+  --orb:'Orbitron',sans-serif;--raj:'Rajdhani',sans-serif;--mono:'Share Tech Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--raj);display:flex;}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* SIDEBAR */
+.sb{width:196px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;position:relative;}
+.sb::after{content:'';position:absolute;top:0;right:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent 0%,var(--cyan) 35%,var(--pink) 65%,transparent 100%);opacity:0.25;}
+.sb-brand{padding:1.4rem 1.1rem 1rem;border-bottom:1px solid var(--border);}
+.sb-brand-name{font-family:var(--orb);font-size:0.72rem;font-weight:700;color:var(--cyan);line-height:1.4;text-shadow:0 0 18px rgba(0,245,255,0.4);letter-spacing:0.03em;}
+.sb-brand-sub{font-family:var(--mono);font-size:0.58rem;color:var(--pink);margin-top:0.2rem;letter-spacing:0.06em;}
+.sb-nav{padding:1.25rem 0;flex:1;}
+.sb-nav-item{display:flex;align-items:center;gap:0.65rem;padding:0.6rem 1.1rem;font-size:0.8rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.18s;letter-spacing:0.04em;position:relative;}
+.sb-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.sb-nav-item.active{color:var(--cyan);background:rgba(0,245,255,0.04);}
+.sb-nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+.sb-icon{font-size:0.9rem;flex-shrink:0;width:18px;text-align:center;}
+.sb-foot{padding:1rem 1.1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.65rem;}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--orb);font-size:0.58rem;font-weight:700;color:#000;flex-shrink:0;}
+.sb-uname{font-family:var(--mono);font-size:0.68rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-usub{font-size:0.6rem;color:var(--muted);}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-mono);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
-  /* Grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+/* TOPBAR */
+.topbar{height:50px;background:rgba(7,11,18,0.95);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;flex-shrink:0;}
+.tb-input-group{display:flex;align-items:stretch;background:var(--dim);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:border-color 0.2s;height:32px;}
+.tb-input-group:focus-within{border-color:var(--border-c);}
+.tb-label{font-family:var(--mono);font-size:0.58rem;color:var(--cyan);padding:0 0.6rem;display:flex;align-items:center;letter-spacing:0.08em;border-right:1px solid var(--border);white-space:nowrap;}
+.tb-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:0.8rem;color:var(--text);padding:0 0.6rem;caret-color:var(--cyan);min-width:160px;}
+.tb-input::placeholder{color:var(--muted);}
+.tb-btn{background:var(--cyan);color:#000;border:none;padding:0 1rem;font-family:var(--orb);font-size:0.58rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;transition:background 0.2s;white-space:nowrap;}
+.tb-btn:hover{background:#33f7ff;}
+.tb-btn:disabled{background:var(--dim);color:var(--muted);cursor:not-allowed;}
+.tb-spacer{flex:1;}
+.tb-icon{width:30px;height:30px;border-radius:3px;background:var(--dim);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.8rem;color:var(--muted);cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+.tb-icon:hover{border-color:var(--border-c);color:var(--cyan);}
 
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-    position: relative;
-    z-index: 1;
-  }
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:1.1rem;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--dim);}
 
-  /* Header */
-  header {
-    text-align: center;
-    padding: 3rem 0 2.5rem;
-  }
+/* LANDING */
+#landing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.85rem;min-height:380px;}
+.l-glyph{font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.25em;text-align:center;}
+.l-big{font-family:var(--orb);font-size:clamp(3rem,7vw,5.5rem);font-weight:900;line-height:0.95;text-align:center;background:linear-gradient(135deg,var(--cyan) 0%,#fff 45%,var(--pink) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.l-sub{font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.1em;}
+.l-blink{font-family:var(--mono);font-size:0.72rem;color:var(--cyan);animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:0.7;}50%{opacity:0.2;}}
 
-  .logo-tag {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--accent);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    display: block;
-  }
+/* LOADING */
+#loading{display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;min-height:320px;}
+.l-ring{width:52px;height:52px;border-radius:50%;border:2px solid var(--dim);border-top-color:var(--cyan);border-right-color:var(--pink);animation:spin 0.75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.l-txt{font-family:var(--mono);font-size:0.7rem;color:var(--muted);letter-spacing:0.12em;}
+.l-h{color:var(--cyan);}
 
-  h1 {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 800;
-    line-height: 1.1;
-    background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent2) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.75rem;
-  }
+/* ERROR */
+.err{display:none;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.3);border-radius:5px;padding:0.65rem 0.9rem;font-family:var(--mono);font-size:0.75rem;color:var(--red);}
 
-  .subtitle {
-    color: var(--muted);
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
-  }
+/* DASHBOARD */
+#dash{display:none;flex-direction:column;gap:1.1rem;}
 
-  /* Search bar */
-  .search-wrap {
-    max-width: 600px;
-    margin: 2.5rem auto;
-    position: relative;
-  }
+/* HERO ROW */
+.hero-row{display:grid;grid-template-columns:1fr 260px;gap:1.1rem;}
+.hero-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1.75rem;position:relative;overflow:hidden;}
+.hero-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));}
+.hero-glow{position:absolute;right:-30px;top:-30px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(0,245,255,0.05) 0%,transparent 70%);pointer-events:none;}
+.hero-tag{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.2em;color:var(--cyan);opacity:0.7;margin-bottom:0.65rem;}
+.hero-name{font-family:var(--orb);font-size:clamp(1.5rem,3vw,2.6rem);font-weight:900;color:#fff;letter-spacing:0.03em;margin-bottom:0.9rem;text-shadow:0 0 30px rgba(0,245,255,0.12);}
+.hero-badges{display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;}
+.badge-rating{font-family:var(--orb);font-size:0.95rem;font-weight:700;padding:0.28rem 0.8rem;border-radius:3px;border:1px solid;}
+.badge-tier{font-family:var(--raj);font-size:0.8rem;font-weight:600;padding:0.28rem 0.8rem;border-radius:3px;border:1px solid;letter-spacing:0.05em;}
 
-  .search-bar {
-    display: flex;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
+/* Radar */
+.radar-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1.1rem;display:flex;flex-direction:column;position:relative;}
+.radar-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--purple),var(--pink));}
+.radar-label{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:0.65rem;}
+.radar-wrap{flex:1;display:flex;align-items:center;justify-content:center;}
+.radar-leg{display:grid;grid-template-columns:1fr 1fr;gap:0.25rem 0.5rem;margin-top:0.6rem;}
+.rl-item{display:flex;align-items:center;gap:0.3rem;font-size:0.6rem;color:var(--muted);}
+.rl-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 
-  .search-bar:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.12);
-  }
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;cursor:default;}
+.stat-card:hover{border-color:rgba(0,245,255,0.18);transform:translateY(-2px);}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.sc1::after{background:linear-gradient(90deg,var(--cyan),transparent);}
+.sc2::after{background:linear-gradient(90deg,var(--pink),transparent);}
+.sc3::after{background:linear-gradient(90deg,var(--purple),transparent);}
+.sc-ico{font-size:1.2rem;margin-bottom:0.4rem;}
+.sc-lbl{font-family:var(--mono);font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.2rem;}
+.sc-val{font-family:var(--orb);font-size:1.75rem;font-weight:700;line-height:1;}
+.sc-sub{font-size:0.68rem;color:var(--muted);margin-top:0.18rem;}
 
-  .handle-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    padding: 0.9rem 1.2rem;
-    font-family: var(--font-mono);
-    font-size: 0.95rem;
-    color: var(--text);
-    caret-color: var(--accent);
-  }
+/* PROBLEMS SECTION */
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:0.85rem;}
+.sec-title{font-family:var(--orb);font-size:0.95rem;font-weight:700;letter-spacing:0.05em;}
+.sec-sub{font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.15rem;letter-spacing:0.04em;}
+.sort-btns{display:flex;gap:0.4rem;}
+.sb2{font-family:var(--mono);font-size:0.6rem;padding:0.28rem 0.7rem;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;}
+.sb2:hover,.sb2.active{border-color:var(--border-c);color:var(--cyan);background:rgba(0,245,255,0.06);}
 
-  .handle-input::placeholder { color: var(--muted); }
+/* TAG TABS */
+.tag-tabs{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.85rem;}
+.ttab{font-family:var(--mono);font-size:0.64rem;padding:0.25rem 0.75rem;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;text-transform:capitalize;}
+.ttab:hover{color:var(--text);}
+.ttab.active{background:rgba(0,245,255,0.07);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
 
-  .search-btn {
-    background: var(--accent);
-    color: #000;
-    border: none;
-    padding: 0 1.5rem;
-    font-family: var(--font-display);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
+/* PROBLEM CARDS */
+.prob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:0.9rem;}
+.prob-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:0.55rem;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;animation:cin 0.32s ease both;}
+@keyframes cin{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.prob-card:hover{border-color:rgba(0,245,255,0.22);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,0.5),0 0 0 1px rgba(0,245,255,0.08);}
+.prob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;}
+.prob-card.hg::before{background:linear-gradient(90deg,var(--pink),transparent);}
+.prob-card.mg::before{background:linear-gradient(90deg,var(--gold),transparent);}
+.prob-card.lg::before{background:linear-gradient(90deg,var(--cyan),transparent);}
 
-  .search-btn:hover { background: #33eeff; }
-  .search-btn:active { transform: scale(0.97); }
-  .search-btn:disabled { background: var(--muted); cursor: not-allowed; }
+.prob-top{display:flex;align-items:center;justify-content:space-between;}
+.prob-gain-badge{font-family:var(--mono);font-size:0.52rem;padding:2px 7px;border-radius:2px;letter-spacing:0.06em;text-transform:uppercase;}
+.gb-hg{background:rgba(255,45,155,0.15);color:var(--pink);border:1px solid rgba(255,45,155,0.3);}
+.gb-mg{background:rgba(255,193,7,0.12);color:var(--gold);border:1px solid rgba(255,193,7,0.25);}
+.gb-lg{background:rgba(0,245,255,0.08);color:var(--cyan);border:1px solid rgba(0,245,255,0.2);}
 
-  /* Stats bar */
-  .stats-bar {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2.5rem;
-    font-size: 0.78rem;
-    color: var(--muted);
-    flex-wrap: wrap;
-  }
+.prob-tags{display:flex;gap:0.3rem;flex-wrap:wrap;}
+.ptag{font-family:var(--mono);font-size:0.55rem;padding:2px 6px;border-radius:2px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);text-transform:capitalize;}
+.prob-name{font-family:var(--raj);font-size:0.95rem;font-weight:700;color:var(--text);line-height:1.3;padding-right:0.5rem;}
+.prob-desc{font-size:0.72rem;color:var(--muted);line-height:1.5;}
+.prob-foot{display:flex;align-items:center;justify-content:space-between;margin-top:0.15rem;}
+.prob-pts{font-family:var(--mono);font-size:0.7rem;color:var(--green);}
+.prob-right{display:flex;align-items:center;gap:0.6rem;}
+.prob-rating{font-family:var(--orb);font-size:1.1rem;font-weight:700;}
+.solve-btn{font-family:var(--orb);font-size:0.6rem;font-weight:700;letter-spacing:0.1em;padding:0.35rem 0.85rem;border-radius:3px;border:1px solid var(--cyan);background:rgba(0,245,255,0.07);color:var(--cyan);text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;cursor:pointer;transition:all 0.2s;}
+.solve-btn:hover{background:var(--cyan);color:#000;box-shadow:0 0 14px rgba(0,245,255,0.4);}
 
-  .stat-item span { color: var(--accent); font-weight: 700; }
+.empty{padding:2.5rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);grid-column:1/-1;background:var(--card);border:1px solid var(--border);border-radius:8px;}
 
-  /* Error / info */
-  .message {
-    text-align: center;
-    padding: 2rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    font-size: 0.85rem;
-    color: var(--muted);
-    max-width: 500px;
-    margin: 0 auto;
-  }
+/* TIER COLOURS */
+.t-newbie{color:#888;border-color:rgba(136,136,136,0.35);}
+.t-pupil{color:#00c800;border-color:rgba(0,200,0,0.35);}
+.t-spec{color:#03b0a6;border-color:rgba(3,176,166,0.35);}
+.t-expert{color:#4488ff;border-color:rgba(68,136,255,0.35);}
+.t-cm{color:#cc44cc;border-color:rgba(204,68,204,0.35);}
+.t-master{color:#ff8c00;border-color:rgba(255,140,0,0.35);}
+.t-im{color:#ff8c00;border-color:rgba(255,140,0,0.4);}
+.t-gm{color:#ff3333;border-color:rgba(255,51,51,0.4);}
+.t-lgm{color:#ff3333;border-color:rgba(255,51,51,0.45);}
 
-  .message.error { border-color: var(--accent2); color: var(--accent2); }
+@media(max-width:860px){.hero-row{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr 1fr;}}
+@media(max-width:640px){.sb{width:52px;}.sb-brand-name,.sb-brand-sub,.sb-nav-item span,.sb-uname,.sb-usub{display:none;}.sb-nav-item{justify-content:center;padding:0.65rem;}.stats-row{grid-template-columns:1fr 1fr;}}
 
-  /* Loading */
-  .loader {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 3rem;
-    color: var(--muted);
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-  }
+/* ── VIEWS ── */
+.view{display:none;flex-direction:column;gap:1.25rem;animation:vfade 0.25s ease;}
+.view.active{display:flex;}
+@keyframes vfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-  .dots {
-    display: flex;
-    gap: 6px;
-  }
+/* Recommendations view */
+.recs-filter-row{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+.recs-search{flex:1;min-width:180px;background:var(--dim);border:1px solid var(--border);border-radius:4px;padding:0.45rem 0.75rem;font-family:var(--mono);font-size:0.78rem;color:var(--text);outline:none;caret-color:var(--cyan);}
+.recs-search:focus{border-color:var(--border-c);}
+.recs-search::placeholder{color:var(--muted);}
+.filter-chip{font-family:var(--mono);font-size:0.6rem;padding:0.28rem 0.75rem;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.18s;letter-spacing:0.04em;text-transform:capitalize;}
+.filter-chip:hover{color:var(--text);}
+.filter-chip.on{background:rgba(0,245,255,0.07);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
+.recs-all-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:0.9rem;}
 
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 1.4s infinite ease-in-out both;
-  }
+/* Profile view */
+.profile-grid{display:grid;grid-template-columns:320px 1fr;gap:1.25rem;}
+.prof-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1.5rem;position:relative;overflow:hidden;}
+.prof-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.prof-card.c-cyan::before{background:linear-gradient(90deg,var(--cyan),transparent);}
+.prof-card.c-pink::before{background:linear-gradient(90deg,var(--pink),transparent);}
+.prof-card.c-pur::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.prof-avatar-big{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--orb);font-size:1.4rem;font-weight:700;color:#000;margin-bottom:1rem;}
+.prof-handle{font-family:var(--orb);font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:0.3rem;}
+.prof-tier-line{display:flex;align-items:center;gap:0.65rem;margin-bottom:1.25rem;}
+.prof-stats-list{display:flex;flex-direction:column;gap:0.75rem;}
+.psl-row{display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--border);}
+.psl-row:last-child{border-bottom:none;}
+.psl-label{font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
+.psl-val{font-family:var(--orb);font-size:0.9rem;font-weight:700;}
+.skill-section{display:flex;flex-direction:column;gap:0.85rem;}
+.skill-item{display:flex;flex-direction:column;gap:0.3rem;}
+.skill-head{display:flex;justify-content:space-between;}
+.skill-name{font-family:var(--mono);font-size:0.7rem;color:var(--text);text-transform:capitalize;}
+.skill-cnt{font-family:var(--mono);font-size:0.65rem;color:var(--muted);}
+.skill-track{height:4px;background:var(--dim);border-radius:2px;overflow:hidden;}
+.skill-fill{height:100%;border-radius:2px;transition:width 1s cubic-bezier(0.16,1,0.3,1);}
 
-  .dot:nth-child(2) { animation-delay: 0.2s; background: #fff; }
-  .dot:nth-child(3) { animation-delay: 0.4s; background: var(--accent2); }
-
-  @keyframes pulse {
-    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-    40% { transform: scale(1); opacity: 1; }
-  }
-
-  /* Topic grid */
-  .topics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .topic-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    animation: fadeUp 0.4s ease both;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .topic-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .topic-name {
-    font-family: var(--font-display);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .topic-count {
-    font-size: 0.65rem;
-    color: var(--muted);
-    background: var(--tag-bg);
-    padding: 2px 8px;
-    border-radius: 2px;
-  }
-
-  .problem-list { padding: 0.5rem 0; }
-
-  .problem-item {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding: 0.6rem 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    gap: 0.75rem;
-    transition: background 0.15s;
-  }
-
-  .problem-item:last-child { border-bottom: none; }
-  .problem-item:hover { background: rgba(0, 229, 255, 0.04); }
-
-  .problem-info { flex: 1; min-width: 0; }
-
-  .problem-link {
-    color: var(--text);
-    text-decoration: none;
-    font-size: 0.82rem;
-    line-height: 1.4;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color 0.15s;
-  }
-
-  .problem-link:hover { color: var(--accent); }
-
-  .problem-meta {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.3rem;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    font-size: 0.6rem;
-    padding: 2px 6px;
-    border-radius: 2px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .badge-rating { background: rgba(123,94,167,0.25); color: #a78bfa; }
-  .badge-score { background: rgba(0,229,255,0.1); color: var(--accent); }
-
-  .no-probs {
-    padding: 1.5rem 1rem;
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  /* Refresh button */
-  .refresh-row {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2rem;
-  }
-
-  .refresh-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    padding: 0.4rem 1rem;
-    cursor: pointer;
-    border-radius: 2px;
-    letter-spacing: 0.05em;
-    transition: border-color 0.2s, color 0.2s;
-  }
-
-  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* Handle display */
-  .handle-display {
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .handle-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 0.4rem 1rem;
-    font-size: 0.8rem;
-  }
-
-  .handle-pill .at { color: var(--accent2); }
-  .handle-pill .name { color: var(--text); font-weight: 700; }
+/* Settings view */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.set-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1.5rem;position:relative;overflow:hidden;}
+.set-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.set-card.c-cyan::before{background:linear-gradient(90deg,var(--cyan),transparent);}
+.set-card.c-pink::before{background:linear-gradient(90deg,var(--pink),transparent);}
+.set-card.c-pur::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.set-card.c-gold::before{background:linear-gradient(90deg,var(--gold),transparent);}
+.set-title{font-family:var(--orb);font-size:0.75rem;font-weight:700;letter-spacing:0.08em;margin-bottom:1rem;color:var(--text);}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);}
+.set-row:last-child{border-bottom:none;}
+.set-label{font-size:0.8rem;color:var(--text);font-weight:500;}
+.set-sub{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.1rem;}
+/* Toggle */
+.toggle{position:relative;width:38px;height:20px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{position:absolute;inset:0;background:var(--dim);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:background 0.2s;}
+.toggle input:checked+.toggle-track{background:rgba(0,245,255,0.2);border-color:var(--cyan);}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--muted);transition:transform 0.2s,background 0.2s;}
+.toggle input:checked~.toggle-thumb{transform:translateX(18px);background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+.set-select{background:var(--dim);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:0.72rem;padding:0.3rem 0.6rem;outline:none;cursor:pointer;}
+.set-select:focus{border-color:var(--border-c);}
+.set-number{background:var(--dim);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:0.72rem;padding:0.3rem 0.6rem;outline:none;width:70px;text-align:center;}
+.set-number:focus{border-color:var(--border-c);}
+.clear-cache-btn{font-family:var(--orb);font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:0.4rem 1rem;border-radius:3px;border:1px solid var(--red);background:rgba(255,71,87,0.07);color:var(--red);cursor:pointer;transition:all 0.2s;margin-top:0.5rem;}
+.clear-cache-btn:hover{background:var(--red);color:#fff;}
+.no-data-msg{background:var(--card);border:1px dashed var(--border);border-radius:8px;padding:3rem 2rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.08em;}
+.no-data-msg strong{color:var(--cyan);display:block;font-size:1rem;margin-bottom:0.5rem;font-family:var(--orb);}
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <span class="logo-tag">// Codeforces Problem Recommender</span>
-    <h1>Growth In O(1)</h1>
-    <p class="subtitle">Personalized problems ranked by your skill profile</p>
-  </header>
 
-  <div class="search-wrap">
-    <div class="search-bar">
-      <input
-        class="handle-input"
-        id="handleInput"
-        type="text"
-        placeholder="Enter CF handle (e.g. tourist)"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <button class="search-btn" id="searchBtn" onclick="fetchRecs()">ANALYZE</button>
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-brand-name">The Neon<br/>Architect</div>
+    <div class="sb-brand-sub" id="sbSub">CF Dashboard</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-nav-item active" data-view="dashboard" onclick="setNav(this,'dashboard')"><span class="sb-icon">⬡</span><span>Dashboard</span></div>
+    <div class="sb-nav-item" data-view="recommendations" onclick="setNav(this,'recommendations')"><span class="sb-icon">◈</span><span>Recommendations</span></div>
+    <div class="sb-nav-item" data-view="profile" onclick="setNav(this,'profile')"><span class="sb-icon">◉</span><span>User Profile</span></div>
+    <div class="sb-nav-item" data-view="settings" onclick="setNav(this,'settings')"><span class="sb-icon">⚙</span><span>Settings</span></div>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-avatar" id="sbAvatar">?</div>
+    <div>
+      <div class="sb-uname" id="sbUname">—</div>
+      <div class="sb-usub" id="sbUsub">Enter handle ↑</div>
     </div>
   </div>
+</aside>
 
-  <div id="output"></div>
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-input-group">
+      <span class="tb-label">ENTER CF HANDLE:</span>
+      <input class="tb-input" id="handleInput" placeholder="tourist" autocomplete="off" spellcheck="false"/>
+      <button class="tb-btn" id="runBtn" onclick="fetchRecs()">ANALYZE</button>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-icon" title="Refresh cache" onclick="fetchRecs(true)">↺</div>
+    <div class="tb-icon" title="Notifications">🔔</div>
+    <div class="tb-icon" title="Fullscreen">⊞</div>
+    <div class="tb-icon" title="Reset" onclick="resetAll()">⏻</div>
+  </div>
+
+  <div class="content">
+    <div class="err" id="errBar"></div>
+
+    <!-- LANDING -->
+    <div id="landing">
+      <div class="l-glyph">// CODEFORCES INTELLIGENCE SYSTEM v2.0 //</div>
+      <div class="l-big">GROWTH<br/>IN O(1)</div>
+      <div class="l-sub">Personalized problems ranked by your skill profile</div>
+      <div class="l-blink">↑ ENTER HANDLE TO BEGIN_</div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading">
+      <div class="l-ring"></div>
+      <div class="l-txt">FETCHING DATA FOR <span class="l-h" id="loadH"></span></div>
+      <div class="l-txt" style="opacity:0.5;font-size:0.6rem;">QUERYING CODEFORCES API...</div>
+    </div>
+
+    <!-- ═══ VIEW: DASHBOARD ═══ -->
+    <div id="view-dashboard" class="view">
+      <div class="hero-row">
+        <div class="hero-panel">
+          <div class="hero-glow"></div>
+          <div class="hero-tag">// ACTIVE PARTICIPANT</div>
+          <div class="hero-name" id="heroName">—</div>
+          <div class="hero-badges">
+            <div class="badge-rating" id="bRating">—</div>
+            <div class="badge-tier" id="bTier">—</div>
+          </div>
+        </div>
+        <div class="radar-panel">
+          <div class="radar-label">// TAG FREQUENCY DISTRIBUTION</div>
+          <div class="radar-wrap"><canvas id="radar" width="155" height="140"></canvas></div>
+          <div class="radar-leg" id="radarLeg"></div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card sc1">
+          <div class="sc-ico" style="color:var(--cyan)">✓</div>
+          <div class="sc-lbl">Problems Solved</div>
+          <div class="sc-val" style="color:var(--cyan)" id="scS">—</div>
+          <div class="sc-sub">Accepted submissions</div>
+        </div>
+        <div class="stat-card sc2">
+          <div class="sc-ico" style="color:var(--pink)">◈</div>
+          <div class="sc-lbl">Recommendations</div>
+          <div class="sc-val" style="color:var(--pink)" id="scR">—</div>
+          <div class="sc-sub">Personalized for you</div>
+        </div>
+        <div class="stat-card sc3">
+          <div class="sc-ico" style="color:var(--purple)">⬡</div>
+          <div class="sc-lbl">Rating Range</div>
+          <div class="sc-val" style="color:var(--purple);font-size:1.1rem;margin-top:0.3rem;" id="scRng">—</div>
+          <div class="sc-sub">Target difficulty band</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-head">
+          <div>
+            <div class="sec-title">Priority Recommendations</div>
+            <div class="sec-sub">Tailored items based on your current rating delta</div>
+          </div>
+          <div class="sort-btns">
+            <button class="sb2 active" id="sBtnR" onclick="setSort('rating',this)">Sort: Difficulty</button>
+            <button class="sb2" id="sBtnS" onclick="setSort('score',this)">Sort: Score</button>
+          </div>
+        </div>
+        <div class="tag-tabs" id="tagTabs"></div>
+        <div class="prob-grid" id="probGrid"></div>
+      </div>
+    </div> <!-- end view-dashboard -->
+
+    <!-- ═══ VIEW: RECOMMENDATIONS ═══ -->
+    <div id="view-recommendations" class="view">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">All Recommendations</div>
+          <div class="sec-sub">Browse and filter all personalized problems</div>
+        </div>
+        <div class="sort-btns">
+          <button class="sb2 active" id="rBtnR" onclick="setRecsSort('rating',this)">Sort: Difficulty</button>
+          <button class="sb2" id="rBtnS" onclick="setRecsSort('score',this)">Sort: Score</button>
+        </div>
+      </div>
+      <div class="recs-filter-row" id="recsFilterRow">
+        <input class="recs-search" id="recsSearch" placeholder="Search problem name..." oninput="renderRecsView()"/>
+      </div>
+      <div class="recs-all-grid" id="recsGrid"></div>
+    </div>
+
+    <!-- ═══ VIEW: PROFILE ═══ -->
+    <div id="view-profile" class="view">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">User Profile</div>
+          <div class="sec-sub">Detailed stats and skill breakdown</div>
+        </div>
+      </div>
+      <div class="profile-grid" id="profileGrid">
+        <div class="no-data-msg"><strong>NO DATA</strong>Enter a handle and hit ANALYZE first</div>
+      </div>
+    </div>
+
+    <!-- ═══ VIEW: SETTINGS ═══ -->
+    <div id="view-settings" class="view">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">Settings</div>
+          <div class="sec-sub">Configure your recommendation preferences</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <div class="set-card c-cyan">
+          <div class="set-title">// RECOMMENDATION ENGINE</div>
+          <div class="set-row">
+            <div><div class="set-label">Rating Delta</div><div class="set-sub">Problems within ± N of your rating</div></div>
+            <input class="set-number" id="cfgDelta" type="number" value="200" min="50" max="500" step="50"/>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Max Recs Per Tag</div><div class="set-sub">How many problems to show per topic</div></div>
+            <input class="set-number" id="cfgPerTag" type="number" value="5" min="1" max="20"/>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Sort Default</div><div class="set-sub">Default sort when loading results</div></div>
+            <select class="set-select" id="cfgSort">
+              <option value="rating">Difficulty</option>
+              <option value="score">Score</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="set-card c-pink">
+          <div class="set-title">// DISPLAY PREFERENCES</div>
+          <div class="set-row">
+            <div><div class="set-label">Show Problem Descriptions</div><div class="set-sub">Display short description on cards</div></div>
+            <label class="toggle"><input type="checkbox" checked id="cfgDesc"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Scanline Effect</div><div class="set-sub">Retro CRT scanline overlay</div></div>
+            <label class="toggle"><input type="checkbox" checked id="cfgScanline" onchange="toggleScanline(this)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Glow Animations</div><div class="set-sub">Hover glow effects on cards</div></div>
+            <label class="toggle"><input type="checkbox" checked id="cfgGlow"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Compact Mode</div><div class="set-sub">Smaller cards with less padding</div></div>
+            <label class="toggle"><input type="checkbox" id="cfgCompact" onchange="toggleCompact(this)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+        <div class="set-card c-pur">
+          <div class="set-title">// ACTIVE TOPICS</div>
+          <div id="cfgTagsList" style="display:flex;flex-direction:column;gap:0.1rem;"></div>
+        </div>
+
+        <div class="set-card c-gold">
+          <div class="set-title">// CACHE & DATA</div>
+          <div class="set-row">
+            <div><div class="set-label">Problem Cache</div><div class="set-sub">Cached CF problemset data</div></div>
+            <span style="font-family:var(--mono);font-size:0.7rem;color:var(--green);" id="cacheStatus">LOADED</span>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Last Handle</div><div class="set-sub">Most recently analyzed user</div></div>
+            <span style="font-family:var(--mono);font-size:0.7rem;color:var(--cyan);" id="cfgLastHandle">—</span>
+          </div>
+          <div class="set-row">
+            <div><div class="set-label">Auto-Refresh</div><div class="set-sub">Re-fetch on each analyze</div></div>
+            <label class="toggle"><input type="checkbox" id="cfgAutoRefresh"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <button class="clear-cache-btn" onclick="clearCache()">⚠ CLEAR CACHE</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
 </div>
 
 <script>
-  const API = '';  // Same origin; Flask serves both
+const API='';
+let G=null, activeTag='__all__', sortMode='rating', recsSortMode='rating', currentView='dashboard';
+const COLS=['#00f5ff','#ff2d9b','#9b59f5','#ffc107','#00ff88','#f97316','#06b6d4','#ec4899','#84cc16','#6366f1'];
+const ALL_VIEWS=['dashboard','recommendations','profile','settings'];
 
-  document.getElementById('handleInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') fetchRecs();
+document.getElementById('handleInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchRecs();});
+
+/* ── NAV ── */
+function setNav(el, view){
+  document.querySelectorAll('.sb-nav-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  currentView = view;
+  showView(view);
+}
+
+function showView(view){
+  // hide landing/loading
+  document.getElementById('landing').style.display='none';
+  document.getElementById('loading').style.display='none';
+
+  ALL_VIEWS.forEach(v=>{
+    const el=document.getElementById('view-'+v);
+    if(el) el.classList.toggle('active', v===view);
   });
 
-  async function fetchRecs(refresh = false) {
-    const handle = document.getElementById('handleInput').value.trim();
-    if (!handle) return;
-
-    const btn = document.getElementById('searchBtn');
-    btn.disabled = true;
-    btn.textContent = '...';
-
-    showLoader(handle);
-
-    try {
-      const url = `${API}/api/recommend?handle=${encodeURIComponent(handle)}${refresh ? '&refresh=true' : ''}`;
-      const resp = await fetch(url);
-      const data = await resp.json();
-
-      if (!resp.ok) {
-        showError(data.error || 'Something went wrong.');
-        return;
-      }
-
-      renderResults(data, handle);
-    } catch (err) {
-      showError('Network error. Is the server running?');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'ANALYZE';
+  // If no data yet and not settings, show "no data" prompt
+  if(!G && view!=='settings'){
+    const target=document.getElementById('view-'+view);
+    if(target && !target.querySelector('.no-data-msg')){
+      // already has content, leave it
     }
   }
 
-  function showLoader(handle) {
-    document.getElementById('output').innerHTML = `
-      <div class="loader">
-        <div class="dots">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-        </div>
-        <span>FETCHING DATA FOR <strong style="color:var(--accent)">${handle}</strong></span>
-      </div>`;
+  // Re-render views that need fresh data
+  if(G){
+    if(view==='recommendations') renderRecsView();
+    if(view==='profile') renderProfileView();
+    if(view==='settings') renderSettingsView();
   }
+}
 
-  function showError(msg) {
-    document.getElementById('output').innerHTML =
-      `<div class="message error">${msg}</div>`;
-  }
+function showLanding(){
+  ALL_VIEWS.forEach(v=>{ const el=document.getElementById('view-'+v); if(el)el.classList.remove('active'); });
+  document.getElementById('loading').style.display='none';
+  document.getElementById('landing').style.display='flex';
+}
 
-  function renderResults(data, handle) {
-    const { recommendations, tags, solved_count } = data;
+function showLoading(){
+  ALL_VIEWS.forEach(v=>{ const el=document.getElementById('view-'+v); if(el)el.classList.remove('active'); });
+  document.getElementById('landing').style.display='none';
+  document.getElementById('loading').style.display='flex';
+}
 
-    const totalRecs = tags.reduce((sum, t) => sum + (recommendations[t]?.length || 0), 0);
+function resetAll(){
+  G=null; activeTag='__all__'; sortMode='rating'; recsSortMode='rating';
+  showLanding();
+  document.getElementById('handleInput').value='';
+  document.getElementById('sbUname').textContent='—';
+  document.getElementById('sbAvatar').textContent='?';
+  document.getElementById('sbSub').textContent='CF Dashboard';
+  document.getElementById('sbUsub').textContent='Enter handle ↑';
+  document.getElementById('errBar').style.display='none';
+  // reset nav to dashboard
+  document.querySelectorAll('.sb-nav-item').forEach(i=>i.classList.remove('active'));
+  document.querySelector('[data-view="dashboard"]').classList.add('active');
+  currentView='dashboard';
+}
 
-    let html = `
-      <div class="handle-display">
-        <div class="handle-pill">
-          <span class="at">@</span><span class="name">${handle}</span>
+/* ── FETCH ── */
+async function fetchRecs(refresh=false){
+  const autoRefresh=document.getElementById('cfgAutoRefresh')?.checked||false;
+  const h=document.getElementById('handleInput').value.trim();
+  if(!h)return;
+  const btn=document.getElementById('runBtn');btn.disabled=true;btn.textContent='...';
+  document.getElementById('errBar').style.display='none';
+  document.getElementById('loadH').textContent=h;
+  showLoading();
+  try{
+    const r=await fetch(`${API}/api/recommend?handle=${encodeURIComponent(h)}${(refresh||autoRefresh)?'&refresh=true':''}`);
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error');
+    G=d;
+    renderDash(d);
+    // auto-navigate to dashboard view
+    document.querySelectorAll('.sb-nav-item').forEach(i=>i.classList.remove('active'));
+    document.querySelector('[data-view="dashboard"]').classList.add('active');
+    currentView='dashboard';
+  }catch(e){
+    showLanding();
+    const eb=document.getElementById('errBar');eb.style.display='block';eb.textContent='⚠ '+e.message;
+  }finally{btn.disabled=false;btn.textContent='ANALYZE';}
+}
+
+/* ── TIER / COLOUR HELPERS ── */
+function tier(r){
+  if(!r)return{l:'Unrated',c:'t-newbie'};
+  if(r<1200)return{l:'Newbie',c:'t-newbie'};
+  if(r<1400)return{l:'Pupil',c:'t-pupil'};
+  if(r<1600)return{l:'Specialist',c:'t-spec'};
+  if(r<1900)return{l:'Expert',c:'t-expert'};
+  if(r<2100)return{l:'Candidate Master',c:'t-cm'};
+  if(r<2300)return{l:'Master',c:'t-master'};
+  if(r<2400)return{l:'Int. Master',c:'t-im'};
+  if(r<2600)return{l:'Grandmaster',c:'t-gm'};
+  return{l:'Legendary GM',c:'t-lgm'};
+}
+function ratingColor(r){
+  if(!r)return'var(--muted)';
+  if(r<1200)return'#888';if(r<1400)return'#00c800';if(r<1600)return'#03b0a6';
+  if(r<1900)return'#4488ff';if(r<2100)return'#cc44cc';if(r<2400)return'#ff8c00';
+  return'#ff3333';
+}
+function gainLabel(score){
+  if(score>1000)return{l:'HIGH GAIN',c:'gb-hg',card:'hg'};
+  if(score>300) return{l:'MED GAIN', c:'gb-mg',card:'mg'};
+  return{l:'EXPLORE',c:'gb-lg',card:'lg'};
+}
+
+/* ── RENDER DASHBOARD ── */
+function renderDash(data){
+  const{handle,current_rating,solved_count,recommendations,tags}=data;
+  const t=tier(current_rating);
+  const tot=tags.reduce((s,x)=>s+(recommendations[x]?.length||0),0);
+
+  document.getElementById('sbAvatar').textContent=handle[0].toUpperCase();
+  document.getElementById('sbUname').textContent=handle;
+  document.getElementById('sbUsub').textContent='Rating: '+(current_rating||'Unrated');
+  document.getElementById('sbSub').textContent=t.l;
+
+  document.getElementById('heroName').textContent=handle;
+  const br=document.getElementById('bRating');br.textContent=current_rating||'—';br.className='badge-rating '+t.c;
+  const bt=document.getElementById('bTier');bt.textContent=t.l;bt.className='badge-tier '+t.c;
+
+  document.getElementById('scS').textContent=solved_count.toLocaleString();
+  document.getElementById('scR').textContent=tot;
+  const lo=(current_rating||800)-200,hi=(current_rating||800)+200;
+  document.getElementById('scRng').textContent=lo+'–'+hi;
+
+  drawRadar(tags,recommendations);
+
+  const tabs=document.getElementById('tagTabs');
+  tabs.innerHTML=`<button class="ttab active" onclick="setTag('__all__',this)">ALL (${tot})</button>`;
+  tags.forEach((tag,i)=>{const c=(recommendations[tag]||[]).length;tabs.innerHTML+=`<button class="ttab" onclick="setTag('${tag}',this)">${tag} (${c})</button>`;});
+
+  ALL_VIEWS.forEach(v=>{const el=document.getElementById('view-'+v);if(el)el.classList.remove('active');});
+  document.getElementById('view-dashboard').classList.add('active');
+  document.getElementById('landing').style.display='none';
+  document.getElementById('loading').style.display='none';
+
+  activeTag='__all__'; sortMode='rating';
+  document.querySelectorAll('.sb2').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sBtnR').classList.add('active');
+  renderProblems();
+}
+
+/* ── RADAR ── */
+function drawRadar(tags,recs){
+  const cv=document.getElementById('radar');const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2,r=Math.min(W,H)/2-16;
+  ctx.clearRect(0,0,W,H);
+  const n=Math.min(tags.length,8);const sl=tags.slice(0,n);
+  const mx=Math.max(...sl.map(t=>recs[t]?.length||0),1);
+  for(let i=1;i<=4;i++){ctx.beginPath();for(let j=0;j<n;j++){const a=(j/n)*Math.PI*2-Math.PI/2;const rr=r*(i/4);j===0?ctx.moveTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr):ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);}ctx.closePath();ctx.strokeStyle=i===4?'rgba(0,245,255,0.12)':'rgba(255,255,255,0.04)';ctx.lineWidth=1;ctx.stroke();}
+  for(let j=0;j<n;j++){const a=(j/n)*Math.PI*2-Math.PI/2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;ctx.stroke();}
+  const vals=sl.map(t=>(recs[t]?.length||0)/mx);
+  ctx.beginPath();vals.forEach((v,j)=>{const a=(j/n)*Math.PI*2-Math.PI/2;const x=cx+Math.cos(a)*r*v,y=cy+Math.sin(a)*r*v;j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.closePath();
+  ctx.fillStyle='rgba(0,245,255,0.07)';ctx.fill();ctx.strokeStyle='rgba(0,245,255,0.55)';ctx.lineWidth=1.5;ctx.stroke();
+  vals.forEach((v,j)=>{const a=(j/n)*Math.PI*2-Math.PI/2;const x=cx+Math.cos(a)*r*v,y=cy+Math.sin(a)*r*v;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#00f5ff';ctx.fill();});
+  ctx.font='500 8px Share Tech Mono,monospace';ctx.fillStyle='rgba(150,170,200,0.75)';ctx.textAlign='center';ctx.textBaseline='middle';
+  sl.forEach((t,j)=>{const a=(j/n)*Math.PI*2-Math.PI/2;const lr=r+11;ctx.fillText(t.length>7?t.slice(0,6)+'…':t,cx+Math.cos(a)*lr,cy+Math.sin(a)*lr);});
+  document.getElementById('radarLeg').innerHTML=sl.slice(0,6).map((t,i)=>`<div class="rl-item"><div class="rl-dot" style="background:${COLS[i%COLS.length]}"></div>${t}: ${recs[t]?.length||0}</div>`).join('');
+}
+
+/* ── DASHBOARD PROBLEMS ── */
+function setTag(tag,el){document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('active'));el.classList.add('active');activeTag=tag;renderProblems();}
+function setSort(mode,el){sortMode=mode;document.querySelectorAll('.sb2').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderProblems();}
+
+function renderProblems(){
+  if(!G)return;
+  const{recommendations,tags}=G;
+  let probs=[];
+  if(activeTag==='__all__'){tags.forEach((t,i)=>(recommendations[t]||[]).forEach(p=>probs.push({...p,_ci:i})));}
+  else{const i=tags.indexOf(activeTag);probs=(recommendations[activeTag]||[]).map(p=>({...p,_ci:i}));}
+  probs.sort((a,b)=>sortMode==='score'?b.score-a.score:(b.rating||0)-(a.rating||0));
+  const grid=document.getElementById('probGrid');
+  if(!probs.length){grid.innerHTML=`<div class="empty">// NO PROBLEMS FOUND IN THIS RANGE //</div>`;return;}
+  grid.innerHTML=probCardsHTML(probs);
+}
+
+function probCardsHTML(probs){
+  return probs.map((p,i)=>{
+    const g=gainLabel(p.score);
+    const rc=ratingColor(p.rating);
+    const ptags=p.tags.slice(0,3).map(t=>`<span class="ptag">${t}</span>`).join('');
+    const showDesc=document.getElementById('cfgDesc')?.checked!==false;
+    return`<div class="prob-card ${g.card}" style="animation-delay:${i*0.04}s">
+      <div class="prob-top"><div class="prob-tags">${ptags}</div><span class="prob-gain-badge ${g.c}">${g.l}</span></div>
+      <div class="prob-name">${p.name}</div>
+      ${showDesc?`<div class="prob-desc">Problem ${p.contestId}${p.index} — Open on Codeforces to read and submit.</div>`:''}
+      <div class="prob-foot">
+        <div class="prob-pts">+<span>${p.score}</span> pts</div>
+        <div class="prob-right">
+          <div class="prob-rating" style="color:${rc}">${p.rating||'?'}</div>
+          <a class="solve-btn" href="${p.url}" target="_blank">▶ SOLVE</a>
         </div>
       </div>
-      <div class="stats-bar">
-        <div class="stat-item">Problems Solved: <span>${solved_count}</span></div>
-        <div class="stat-item">Recommendations: <span>${totalRecs}</span></div>
-        <div class="stat-item">Topics: <span>${tags.length}</span></div>
-      </div>
-      <div class="refresh-row">
-        <button class="refresh-btn" onclick="fetchRecs(true)">↻ Refresh problem cache</button>
-      </div>
-      <div class="topics-grid">`;
+    </div>`;
+  }).join('');
+}
 
-    tags.forEach((tag, i) => {
-      const probs = recommendations[tag] || [];
-      html += `
-        <div class="topic-card" style="animation-delay:${i * 0.05}s">
-          <div class="topic-header">
-            <span class="topic-name">${tag}</span>
-            <span class="topic-count">${probs.length} recs</span>
-          </div>
-          <div class="problem-list">`;
+/* ── RECOMMENDATIONS VIEW ── */
+function setRecsSort(mode,el){recsSortMode=mode;document.querySelectorAll('.sb2').forEach(b=>b.classList.remove('active'));document.getElementById('rBtnR').classList.remove('active');document.getElementById('rBtnS').classList.remove('active');el.classList.add('active');renderRecsView();}
 
-      if (probs.length === 0) {
-        html += `<div class="no-probs">No unsolved problems found</div>`;
-      } else {
-        probs.forEach(p => {
-          const ratingBadge = p.rating
-            ? `<span class="badge badge-rating">⭑ ${p.rating}</span>` : '';
-          const scoreBadge = `<span class="badge badge-score">score ${p.score}</span>`;
-          html += `
-            <div class="problem-item">
-              <div class="problem-info">
-                <a class="problem-link" href="${p.url}" target="_blank" title="${p.name}">${p.name}</a>
-                <div class="problem-meta">${ratingBadge}${scoreBadge}</div>
-              </div>
-            </div>`;
-        });
-      }
+function renderRecsView(){
+  if(!G){document.getElementById('recsGrid').innerHTML=`<div class="no-data-msg"><strong>NO DATA</strong>Analyze a handle first</div>`;return;}
+  const{recommendations,tags}=G;
+  const query=(document.getElementById('recsSearch')?.value||'').toLowerCase().trim();
 
-      html += `</div></div>`;
+  // Build filter chips if not built yet
+  const filterRow=document.getElementById('recsFilterRow');
+  if(!filterRow.querySelector('.filter-chip')){
+    tags.forEach((t,i)=>{
+      const chip=document.createElement('button');
+      chip.className='filter-chip on';chip.textContent=t;chip.dataset.tag=t;
+      chip.onclick=()=>{chip.classList.toggle('on');renderRecsView();};
+      filterRow.appendChild(chip);
     });
-
-    html += `</div>`;
-    document.getElementById('output').innerHTML = html;
   }
+  const activeChips=[...filterRow.querySelectorAll('.filter-chip.on')].map(c=>c.dataset.tag);
+
+  let probs=[];
+  activeChips.forEach((t,i)=>(recommendations[t]||[]).forEach(p=>probs.push({...p,_ci:tags.indexOf(t)})));
+  if(query) probs=probs.filter(p=>p.name.toLowerCase().includes(query));
+  probs.sort((a,b)=>recsSortMode==='score'?b.score-a.score:(b.rating||0)-(a.rating||0));
+
+  const grid=document.getElementById('recsGrid');
+  if(!probs.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1">// NO PROBLEMS MATCH YOUR FILTERS //</div>`;return;}
+  grid.innerHTML=probCardsHTML(probs);
+}
+
+/* ── PROFILE VIEW ── */
+function renderProfileView(){
+  if(!G){
+    document.getElementById('profileGrid').innerHTML=`<div class="no-data-msg" style="grid-column:1/-1"><strong>NO DATA</strong>Enter a handle and hit ANALYZE first</div>`;
+    return;
+  }
+  const{handle,current_rating,solved_count,recommendations,tags}=G;
+  const t=tier(current_rating);
+  const tot=tags.reduce((s,x)=>s+(recommendations[x]?.length||0),0);
+  const lo=(current_rating||800)-200,hi=(current_rating||800)+200;
+  const maxCnt=Math.max(...tags.map(tg=>(recommendations[tg]||[]).length),1);
+
+  const skillBars=tags.map((tg,i)=>{
+    const cnt=(recommendations[tg]||[]).length;
+    const pct=Math.round((cnt/maxCnt)*100);
+    return`<div class="skill-item">
+      <div class="skill-head"><span class="skill-name">${tg}</span><span class="skill-cnt">${cnt} recs</span></div>
+      <div class="skill-track"><div class="skill-fill" style="width:${pct}%;background:${COLS[i%COLS.length]};"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profileGrid').innerHTML=`
+    <div class="prof-card c-cyan">
+      <div class="prof-avatar-big" id="profAv">${handle[0].toUpperCase()}</div>
+      <div class="prof-handle">${handle}</div>
+      <div class="prof-tier-line">
+        <span class="badge-rating ${t.c}">${current_rating||'—'}</span>
+        <span class="badge-tier ${t.c}">${t.l}</span>
+      </div>
+      <div class="prof-stats-list">
+        <div class="psl-row"><span class="psl-label">Problems Solved</span><span class="psl-val" style="color:var(--cyan)">${solved_count.toLocaleString()}</span></div>
+        <div class="psl-row"><span class="psl-label">Total Recs</span><span class="psl-val" style="color:var(--pink)">${tot}</span></div>
+        <div class="psl-row"><span class="psl-label">Target Range</span><span class="psl-val" style="color:var(--purple);font-size:0.85rem">${lo}–${hi}</span></div>
+        <div class="psl-row"><span class="psl-label">Active Topics</span><span class="psl-val" style="color:var(--gold)">${tags.length}</span></div>
+      </div>
+    </div>
+    <div class="prof-card c-pink">
+      <div class="radar-label" style="margin-bottom:1rem;">// TOPIC SKILL BREAKDOWN</div>
+      <div class="skill-section">${skillBars}</div>
+    </div>`;
+}
+
+/* ── SETTINGS VIEW ── */
+function renderSettingsView(){
+  if(!G) return;
+  document.getElementById('cfgLastHandle').textContent=G.handle;
+  // render tag toggles
+  const list=document.getElementById('cfgTagsList');
+  if(list && !list.children.length){
+    G.tags.forEach((t,i)=>{
+      list.innerHTML+=`<div class="set-row">
+        <div><div class="set-label" style="text-transform:capitalize">${t}</div></div>
+        <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+      </div>`;
+    });
+  }
+}
+
+function toggleScanline(cb){
+  document.body.style.setProperty('--scanline-opacity', cb.checked?'1':'0');
+  // toggle the pseudo-element via a class
+  document.body.classList.toggle('no-scanline',!cb.checked);
+}
+function toggleCompact(cb){
+  document.querySelectorAll('.prob-card').forEach(c=>{c.style.padding=cb.checked?'0.65rem':'';});
+}
+
+async function clearCache(){
+  try{
+    const r=await fetch(`${API}/api/cache/clear`,{method:'POST'});
+    const d=await r.json();
+    const el=document.getElementById('cacheStatus');
+    el.style.color='var(--red)';el.textContent='CLEARED';
+    setTimeout(()=>{el.style.color='var(--green)';el.textContent='LOADED';},2000);
+  }catch(e){alert('Error clearing cache');}
+}
 </script>
 </body>
 </html>
